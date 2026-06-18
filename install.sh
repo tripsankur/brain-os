@@ -7,12 +7,14 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CONFIG_FILE="$REPO_ROOT/brain-os.config.json"
 DRY_RUN=false
+INIT_VAULT=false
 
 for arg in "$@"; do
   case "$arg" in
-    --config=*) CONFIG_FILE="${arg#*=}" ;;
-    --config)   shift; CONFIG_FILE="${1:-}" ;;
-    --dry-run)  DRY_RUN=true ;;
+    --config=*)   CONFIG_FILE="${arg#*=}" ;;
+    --config)     shift; CONFIG_FILE="${1:-}" ;;
+    --dry-run)    DRY_RUN=true ;;
+    --init-vault) INIT_VAULT=true ;;
   esac
 done
 
@@ -118,6 +120,7 @@ for module_json in "$REPO_ROOT/modules/"*/module.json; do
     module_version=$(grep -o '"version"[[:space:]]*:[[:space:]]*"[^"]*"' "$module_json" \
       | sed 's/.*: *"\(.*\)"/\1/')
     MODULES_REG="$VAULT_PATH/Claude/modules.md"
+    mkdir -p "$(dirname "$MODULES_REG")"
     TODAY=$(date '+%Y-%m-%d')
     if [[ ! -f "$MODULES_REG" ]]; then
       printf '# Installed Modules\n> Auto-managed by install.sh. Do not edit manually.\n\n| module | version | installed | claude_path |\n|--------|---------|-----------|-------------|\n' \
@@ -130,6 +133,33 @@ for module_json in "$REPO_ROOT/modules/"*/module.json; do
     echo "  [$module_name] registered in $MODULES_REG"
   fi
 done
+
+echo ""
+echo "Shipping vault templates (so /brain init works without the repo)..."
+if [[ -d "$REPO_ROOT/templates" && "$DRY_RUN" == false ]]; then
+  mkdir -p "$CLAUDE_PATH/brain-templates"
+  cp -R "$REPO_ROOT/templates/." "$CLAUDE_PATH/brain-templates/"
+  echo "  templates -> $CLAUDE_PATH/brain-templates"
+fi
+
+# Bootstrap a fresh vault skeleton. Idempotent: only copies files that don't exist.
+if [[ "$INIT_VAULT" == true || ! -f "$VAULT_PATH/Claude/workflow.md" ]]; then
+  echo ""
+  echo "Bootstrapping vault skeleton at $VAULT_PATH ..."
+  VAULT_TPL="$REPO_ROOT/templates/vault"
+  if [[ "$DRY_RUN" == false && -d "$VAULT_TPL" ]]; then
+    while IFS= read -r -d '' src; do
+      rel="${src#"$VAULT_TPL"/}"
+      dest="$VAULT_PATH/$rel"
+      if [[ ! -e "$dest" ]]; then
+        mkdir -p "$(dirname "$dest")"
+        cp "$src" "$dest"
+        echo "  + $rel"
+      fi
+    done < <(find "$VAULT_TPL" -type f -print0)
+  fi
+  echo "Vault skeleton ready. Add the session-start hook (see README > Session hook) to finish."
+fi
 
 echo ""
 echo "Done. Brain OS installed to $CLAUDE_PATH"

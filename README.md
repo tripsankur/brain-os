@@ -42,6 +42,25 @@ config and copies the skill files into your Claude install — **no hardcoded us
 a clean install leaves zero unresolved tokens). To re-point Brain OS at a different machine/vault,
 edit the config and re-run the installer.
 
+**Fresh vault?** The installer **bootstraps the whole brain skeleton** — if your vault has no
+`Claude/` hub, it creates one from `templates/vault/` (idempotent, never overwrites). Force it with
+`--init-vault` (`install.sh --init-vault` / `install.ps1 -InitVault`), or do it in-session with
+`/brain init`. From `git clone` to a working brain is one command. Then personalize
+`Claude/preferences.md` (it ships as a template).
+
+### Session hook (recommended)
+
+For the full experience, vault context should be injected automatically at the start of each turn.
+Add a `UserPromptSubmit` hook to your Claude `settings.json` that surfaces the vault root + active
+project. This is a **manual step** (Brain OS does not edit your `settings.json` for you):
+
+```jsonc
+// ~/.claude/settings.json  →  hooks.UserPromptSubmit
+{ "hooks": { "UserPromptSubmit": [ { "command": "<your hook that echoes vault path + /brain status>" } ] } }
+```
+
+Without it, Brain OS still works — just run `/brain start` at the top of a session to load context.
+
 ## Commands
 
 | Command | Does |

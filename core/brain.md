@@ -9,6 +9,7 @@ Read the subcommand file for the subcommand passed as `$ARGUMENTS` and execute i
 
 | Subcommand | File |
 |------------|------|
+| `init` | `{{CLAUDE_PATH}}/skills/brain/subcommands/init.md` |
 | `start` | `{{CLAUDE_PATH}}/skills/brain/subcommands/start.md` |
 | `end` | `{{CLAUDE_PATH}}/skills/brain/subcommands/end.md` |
 | `capture` | `{{CLAUDE_PATH}}/skills/brain/subcommands/capture.md` |
@@ -26,4 +27,4 @@ Read the subcommand file for the subcommand passed as `$ARGUMENTS` and execute i
 | `agenda` | `{{CLAUDE_PATH}}/skills/brain/subcommands/agenda.md` |
 | `rename` | `{{CLAUDE_PATH}}/skills/brain/subcommands/rename.md` |
 
-If the subcommand is not in the table, report: "Unknown subcommand '{arg}'. Available: start, end, capture, ingest, history, status, new-project, recall, agent-register, route, promote, sync, diagram, map, agenda, rename"
+If the subcommand is not in the table, report: "Unknown subcommand '{arg}'. Available: init, start, end, capture, ingest, history, status, new-project, recall, agent-register, route, promote, sync, diagram, map, agenda, rename"

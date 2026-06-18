@@ -3,7 +3,8 @@
 
 param(
     [string]$Config = "",
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$InitVault
 )
 
 $RepoRoot = $PSScriptRoot
@@ -84,6 +85,8 @@ Get-ChildItem "$RepoRoot\modules\*\module.json" | ForEach-Object {
     if ($VaultPath -and (Test-Path $VaultPath)) {
         $moduleVersion = $moduleCfg.version
         $modulesReg    = Join-Path $VaultPath "Claude\modules.md"
+        $modulesRegDir = Split-Path $modulesReg -Parent
+        if (-not (Test-Path $modulesRegDir)) { New-Item -ItemType Directory -Path $modulesRegDir -Force | Out-Null }
         $today         = Get-Date -Format "yyyy-MM-dd"
         if (-not (Test-Path $modulesReg)) {
             $header = "# Installed Modules`n> Auto-managed by install.ps1. Do not edit manually.`n`n| module | version | installed | claude_path |`n|--------|---------|-----------|-------------|`n"
@@ -95,6 +98,39 @@ Get-ChildItem "$RepoRoot\modules\*\module.json" | ForEach-Object {
         Add-Content -Path $modulesReg -Value "| $moduleName | $moduleVersion | $today | $ClaudePath |" -Encoding utf8
         Write-Host "  [$moduleName] registered in $modulesReg"
     }
+}
+
+Write-Host ""
+Write-Host "Shipping vault templates (so /brain init works without the repo)..."
+$tplSrc = Join-Path $RepoRoot "templates"
+if (Test-Path $tplSrc) {
+    $tplDest = Join-Path $ClaudePath "brain-templates"
+    if (-not $DryRun) {
+        if (-not (Test-Path $tplDest)) { New-Item -ItemType Directory -Path $tplDest -Force | Out-Null }
+        Copy-Item (Join-Path $tplSrc "*") $tplDest -Recurse -Force
+    }
+    Write-Host "  templates -> $tplDest"
+}
+
+# Bootstrap a fresh vault skeleton. Idempotent: only copies files that don't exist.
+$hubMarker = Join-Path $VaultPath "Claude\workflow.md"
+if ($InitVault -or -not (Test-Path $hubMarker)) {
+    Write-Host ""
+    Write-Host "Bootstrapping vault skeleton at $VaultPath ..."
+    $vaultTpl = Join-Path $RepoRoot "templates\vault"
+    if (-not $DryRun -and (Test-Path $vaultTpl)) {
+        Get-ChildItem $vaultTpl -Recurse -File | ForEach-Object {
+            $rel  = $_.FullName.Substring($vaultTpl.Length).TrimStart('\', '/')
+            $dest = Join-Path $VaultPath $rel
+            if (-not (Test-Path $dest)) {
+                $dir = Split-Path $dest -Parent
+                if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+                Copy-Item $_.FullName $dest -Force
+                Write-Host "  + $rel"
+            }
+        }
+    }
+    Write-Host "Vault skeleton ready. Add the session-start hook (see README > Session hook) to finish."
 }
 
 Write-Host ""
