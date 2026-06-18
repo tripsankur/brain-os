@@ -1,122 +1,107 @@
 ## map
 
-Build or query a project's **code knowledge graph** using [graphify](https://graphifylabs.ai/)
-(`graphifyy` on PyPI). graphify is now the code-map engine for Brain OS — it replaces the
-old heuristic, first-40-lines `code-map.md` index with a real AST + semantic graph
-(functions/classes/concepts as nodes, calls/imports/references as edges, community
-detection, god-node ranking, and a persistent queryable `graph.json`).
+Build or query a project's **unified knowledge graph** with [graphify](https://graphifylabs.ai/)
+(`graphifyy` on PyPI) — one graph over **both the code repo and the vault notes**, so code symbols
+and the intent behind them (decisions, concepts, status) live in a single queryable structure.
 
-Brain owns the *journal* (intent, decisions, status, agenda). graphify owns the *map*
-(structure). This subcommand is the bridge: it builds the map and writes a thin vault
-pointer so future sessions know the code is mapped and how to query it.
+This is the Map layer of Brain OS: Brain owns the *journal* (intent), graphify owns the *map*
+(structure), and `/brain map` joins them. Verified: a query for a domain concept (e.g. "IDM" /
+"Strong Low") traverses from the doc-derived concept node **into the implementing code**
+(`detect_structure`, `StructureState`) — code↔intent cross-edges genuinely form.
+
+> **Optional dependency.** graphify is required *only* for `/brain map`. The rest of Brain OS
+> (`start`, `end`, `status`, `recall`, `agenda`, `sync`, …) works with zero extra dependencies.
+> Don't install graphify unless you want the code/associative graph.
 
 ## Usage
 
 ```
-/brain map [project-name]            # build/refresh the graph on the project repo
-/brain map [project-name] --refresh  # force a full rebuild (else incremental)
-/brain map [project-name] -q "..."   # query the existing graph (no rebuild)
+/brain map [project]            # build/refresh the unified graph (code repo + vault notes)
+/brain map [project] --refresh  # full rebuild (else incremental --update)
+/brain map [project] -q "..."   # query the existing graph (no rebuild)
+/brain map [project] --code-only # graph the repo only (skip vault notes)
+/brain map [project] --vault-only# graph the vault notes only (for non-code projects)
 ```
 
-- `project-name` — defaults to the project inferred from the current working directory.
-- Output graph: `{repo-root}/graphify-out/graph.json` (+ `graph.html`, `GRAPH_REPORT.md`).
-- Output vault pointer: `{{VAULT_PATH}}/Projects/{name}/{name}-code-map.md`.
+- `project` defaults to the project inferred from the working directory.
+- **Graph cache (central, uniform):** `{{CLAUDE_PATH}}/brain-graphs/{name}/graph.json` (+ `graph.html`,
+  `GRAPH_REPORT.md`). Central — NOT in the repo tree and NOT in the vault — so it works the same
+  for code+notes and notes-only projects, and never dirties either store. It is a regenerable
+  cache; safe to delete.
+- **Vault pointer:** `{{VAULT_PATH}}/Projects/{name}/{name}-code-map.md` (god-nodes + how to query).
 
----
+## Sources (the two paths)
+
+`/brain map` builds one graphify graph over the union of:
+1. **Code repo** — resolved from the project (working-dir basename ↔ `Projects/{name}`, the same
+   join key `/brain rename` keeps aligned). Skipped if no repo exists (vault-only project).
+2. **Vault notes** — `{{VAULT_PATH}}/Projects/{name}/` (status, decisions, session-log, wiki,
+   captures). Skipped with `--code-only`.
+
+**Single-corpus staging (architecture-critical).** Code↔intent cross-edges only form when code and
+notes are extracted in ONE pass — the semantic extractor must see both to link a concept to its
+implementing symbol. (Proven: a concept node like `IDM`/`Strong Low` reaches `detect_structure`/
+`StructureState` only because CLAUDE.md was extracted *alongside* the code.) graphify's native
+multi-path mode builds each source separately then merges, which can leave two disconnected islands
+joined only by coincidental id matches. So `/brain map` does NOT merge-after — it **stages both
+sources under one temporary scan root and runs a single graphify pass**, then cleans up the staging
+dir. Co-locating the notes in the repo is therefore unnecessary — staging does the joining at build
+time without moving anything.
 
 ## Execution
 
-### Step 1 — Resolve project and repo root
+### Step 1 — Resolve project + sources
+- Derive `{name}`; confirm `Projects/{name}/` exists (else: "run /brain new-project first").
+- Resolve repo root (confirm with the user if not obvious from the working dir). If none, this is a
+  vault-only build (`--vault-only` implied).
+- Build the source list: `[repo_root?]` + `[{{VAULT_PATH}}/Projects/{name}]` per the flags.
 
-- If `project-name` given: confirm `Projects/{name}/` exists in the vault. Derive the repo
-  root (ask the user to confirm the repo path if it is not obvious from the working directory).
-- If no arg: derive the project name from the working directory.
-- If `Projects/{name}/` is missing, halt: "No vault project for '{name}'. Run `/brain new-project {name}` first."
+### Step 2 — Ensure graphify
+Detect an interpreter that can `import graphify` (uv → pipx → active `python`); install
+`graphifyy` if absent. Save it to `{{CLAUDE_PATH}}/brain-graphs/{name}/.graphify_python`.
+> Windows: any driver `.py` must guard `if __name__ == "__main__": multiprocessing.freeze_support()`
+> (graphify extraction uses a process pool).
 
-### Step 2 — Ensure graphify is installed
+### Step 3 — Query path (`-q`, graph exists)
+If `graph.json` exists and the user asked a question, do NOT rebuild — `graphify query "<q>"`
+against the cached graph. Cross-queries are the point: ask "which code implements {concept}?" or
+"what decision led to {module}?" and let the traversal cross the doc↔code boundary. Quote
+`source_location` when citing.
 
-graphify is a hard dependency of `/brain map`. Detect an interpreter that can `import graphify`
-(prefer `uv tool`, then `pipx`, then the active `python`). If none is found, install it:
-`pip install graphifyy` (or `uv tool install graphifyy`). Save the resolved interpreter path to
-`graphify-out/.graphify_python` so later steps reuse it.
-
-> Windows note: graphify's extraction uses a process pool — any driver `.py` you write must be
-> guarded by `if __name__ == "__main__": multiprocessing.freeze_support()`.
-
-### Step 3 — Query path (`-q` given, graph already exists)
-
-If `graphify-out/graph.json` exists and the user passed `-q "<question>"` (or asked a
-natural-language question about the codebase), do NOT rebuild — answer from the graph:
-
-```
-graphify query "<question>"
-```
-
-Quote `source_location` when citing a specific fact. Fall back to an inline NetworkX
-traversal of `graph.json` only if the `graphify query` CLI is unavailable.
-
-### Step 4 — Build path (default, or `--refresh`)
-
-Run the graphify pipeline on the repo (this is exactly what the `/graphify` skill does — you
-may invoke that skill instead of re-implementing it):
-
-- `--refresh` → full rebuild. Otherwise prefer incremental: `graphify . --update`.
-- Scope to source; graphify already skips `node_modules/`, `.venv/`, `dist/`, `__pycache__/`.
-- Structural (AST) extraction is free and deterministic. Semantic extraction of docs/images
-  runs via subagents (no API key needed — the host session is the LLM); skip low-value
-  binaries/screenshots unless the user asks.
+### Step 4 — Build path (default / `--refresh`)
+1. **Stage one corpus.** Create a temp scan root (e.g. `{{CLAUDE_PATH}}/brain-graphs/{name}/_stage/`).
+   Junction/symlink (or copy) the repo as `code/` and the vault project as `notes/` under it, so a
+   single extraction pass sees both. Exclude `node_modules/`, `.venv/`, `dist/`, `_archive/`,
+   `graphify-out/`, `.git/`.
+2. **One graphify pass** over the staging root (invoke the `/graphify` skill — don't re-implement),
+   writing outputs to `{{CLAUDE_PATH}}/brain-graphs/{name}/`. AST over code is free/deterministic;
+   semantic extraction over docs+notes runs via subagents (no API key — the host session is the LLM).
+   `--refresh` → full rebuild; else incremental `--update`.
+3. **Tear down** the staging junctions/symlinks (keep only the graph outputs). If junctions aren't
+   available, fall back to `--code-only`/`--vault-only` single-source builds and warn that
+   cross-edges won't span the two stores.
+- Scope note: the vault project folder is small; the repo dominates node count.
 
 ### Step 5 — Write the vault pointer `{name}-code-map.md`
-
-graphify's graph lives in the repo and is gitignored, so the journal needs a durable pointer
-that survives without the repo checked out. Write
-`{{VAULT_PATH}}/Projects/{name}/{name}-code-map.md`:
-
-```markdown
-# Code Map — {name}
-> See also: [[{name}]] | [[{name}-status]]
-> Backend: graphify | Graph: {repo-root}/graphify-out/graph.json
-> Generated: {YYYY-MM-DD} | Commit: {hash} | {N} nodes · {E} edges · {C} communities
-
-## How to query
-Run `/brain map {name} -q "<question>"` (or `graphify query "<question>"`) — answers from the
-graph instead of scanning source.
-
-## God Nodes (core abstractions)
-| Node | Edges | File |
-|------|-------|------|
-| `{node}` | {n} | `{path}` |
-
-## Communities (subsystems)
-- {community label} — {one-line description}
-
-## Notes
-- Rebuild after structural changes: `/brain map {name} --refresh`.
-- Auto-rebuild on commit: install the graphify post-commit hook (`graphify hook install`).
-```
-
-Pull the god-nodes, community labels, and counts from `GRAPH_REPORT.md` / `graph.json`.
+Per the template in the previous spec — header carries the cache path, commit, and node/edge/
+community counts; sections list God Nodes and Subsystems; "How to query" points back here. The
+graph is a regenerable cache, so this pointer is the journal's durable handle on it.
 
 ### Step 6 — Report
-
 ```
-Code map (graphify) for {name}: {N} nodes · {E} edges · {C} communities
+Unified map for {name}: {N} nodes · {E} edges · {C} communities  ({code} code + {notes} notes sources)
   God nodes: {top 3}
-  Graph:   {repo-root}/graphify-out/graph.json  (graph.html to browse)
+  Cache:   {{CLAUDE_PATH}}/brain-graphs/{name}/graph.json  (graph.html to browse)
   Pointer: Projects/{name}/{name}-code-map.md
-
-Query it any time: /brain map {name} -q "how does X work?"
+Cross-query it: /brain map {name} -q "which code implements <concept>?"
 ```
-
----
 
 ## Design notes
-
-- **graphify is the single code-map engine.** The previous Explore-agent heuristic index is
-  retired; do not regenerate the old `code-map.md` format.
-- The graph is a snapshot. Rebuild when module structure changes — not every session. The
-  post-commit hook keeps it fresh automatically when installed.
-- The vault pointer (`{name}-code-map.md`) is the journal's durable handle on the map; the
-  full graph is regenerable and gitignored, so never commit `graphify-out/`.
-- Brain↔graphify routing: code-structure questions → this subcommand / graphify; intent,
-  decisions, status, agenda → the rest of `/brain`.
+- **Two stores, one graph.** Code stays in the repo, the journal stays in the vault; graphify
+  merges both into the cache. Co-location is unnecessary and would cost the cross-project vault +
+  clean repos.
+- **Central cache** keeps code+notes and notes-only projects uniform and both stores clean. Never
+  commit it; it regenerates.
+- The graph is a snapshot — rebuild when structure changes, not every session. The graphify
+  post-commit hook keeps the *code* side fresh automatically.
+- graphify is optional and scoped to this one command — Brain OS itself has no hard dependency on it.

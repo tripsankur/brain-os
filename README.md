@@ -1,184 +1,102 @@
 # Brain OS
 
-> **Pre-release (P0)** — Core skill files and install scripts are being migrated in this phase. Commands listed below work on the author's machine; portable install (`install.sh` / `install.ps1`) is P0 deliverable, not yet available. Watch the repo or check the [Roadmap](#roadmap) for progress.
+A conversation-driven **memory + automation OS** for [Claude Code](https://claude.com/claude-code).
+Brain OS turns a plain Markdown vault (Obsidian-friendly) into a persistent, multi-project memory
+layer, and gives the assistant a set of composable `/brain` commands that maintain state, recall
+context, and drive work across sessions — without relying on the assistant *remembering* to do the
+right thing. Structure is a property of the system, projected deterministically from the
+filesystem.
 
-A conversation-driven memory and agent system for [Claude Code](https://claude.ai/code). Brain OS turns your Obsidian vault into a persistent, multi-project memory layer and gives Claude a set of orchestrated commands (`/brain`, `/social-content`, and more) that compose agents, route by operation type, and maintain state across sessions.
+## The model: Journal · Map · Hands
 
----
+| Layer | Engine | Owns |
+|-------|--------|------|
+| **Journal** | Markdown vault (Obsidian) | intent, decisions, status, session log, preferences, agenda |
+| **Map** | [graphify](https://graphifylabs.ai/) *(optional)* | code + notes as one queryable knowledge graph |
+| **Hands** | loops / agenda | execute tasks against a project's prioritized backlog |
 
-## What it does
-
-- **Persistent memory**: Session start/end hooks automatically read and write your vault so Claude always knows project status, recent decisions, and active context.
-- **Multi-project routing**: One `/brain` command dispatches to specialized subcommands — status, capture, diagram, agent-register, and more.
-- **Model routing by operation** *(P2)*: Critique-heavy work routes to Opus; formatting and recall route to Haiku. Model assignments are declared in `brain-os.config.json` — wiring them end-to-end is a P2 milestone.
-- **Agent pipelines**: Complex workflows (e.g., social content generation) run as inline pipeline agents coordinated by a single skill file.
-- **Vault-portable**: All skill files use path tokens (`{{VAULT_PATH}}`, `{{CLAUDE_PATH}}`). The install script resolves them from your config — no hardcoded user paths.
-
----
+- **Structured recall** (a project's status / next steps / decisions) = direct file reads. Cheap, deterministic, always fresh.
+- **Associative recall** ("what across all my work relates to X") = the optional graphify Map.
+- **No write-discipline required**: write freely; `/brain sync` projects structure (indexes loose notes, repairs links) and runs at `/brain end`.
 
 ## Prerequisites
 
-- Claude Code (CLI or desktop app)
-- [Obsidian](https://obsidian.md/) with a vault you own
-- bash (macOS/Linux/WSL) or PowerShell (Windows)
-
----
+- **Claude Code** (the CLI/agent).
+- A Markdown vault directory (Obsidian recommended for the graph view, not required).
+- **PowerShell** (Windows) or **bash** (macOS/Linux) for the installer.
+- *Optional:* **Python ≥3.10 + `graphifyy`** — required **only** for `/brain map` (the code/associative graph). Everything else works with zero extra dependencies.
 
 ## Install
 
-> **P0 status** — `install.sh` / `install.ps1` are not yet written. The steps below describe the intended flow once P0 is complete.
-
-**macOS / Linux / WSL:**
 ```bash
-git clone https://github.com/ankurtripathi/brain-os.git  # repo is currently private
-cd brain-os
-cp config/brain-os.config.example.json config/brain-os.config.json
-# Edit config/brain-os.config.json with your vault path and preferences
-./install.sh
+git clone <your-fork-url> brain-os && cd brain-os
+cp config/brain-os.config.example.json brain-os.config.json
+# edit brain-os.config.json: set vault_path and claude_install_path
+./install.sh            # macOS/Linux
+# or on Windows:
+powershell -File install.ps1
 ```
 
-**Windows (PowerShell):**
-```powershell
-git clone https://github.com/ankurtripathi/brain-os.git
-cd brain-os
-cp config\brain-os.config.example.json config\brain-os.config.json
-# Edit config\brain-os.config.json with your vault path and preferences
-.\install.ps1
-```
+The installer resolves path tokens (`{{VAULT_PATH}}`, `{{CLAUDE_PATH}}`, `{{REPO_PATH}}`) from your
+config and copies the skill files into your Claude install — **no hardcoded user paths** (verified:
+a clean install leaves zero unresolved tokens). To re-point Brain OS at a different machine/vault,
+edit the config and re-run the installer.
 
-The install script will:
-1. Read `config/brain-os.config.json`
-2. Resolve `{{TOKEN}}` placeholders in all skill files
-3. Copy `core/` → `~/.claude/commands/` and `~/.claude/skills/`
-4. Copy `modules/` → `~/.claude/commands/` and `~/.claude/skills/`
+## Commands
 
-After install, add the `UserPromptSubmit` hook to `~/.claude/settings.json` manually (see [Configuration](#configuration)).
+| Command | Does |
+|---------|------|
+| `/brain start` | Load active-project status + top agenda items; process inbox |
+| `/brain end` | Write session back (session-log, status, decisions, agenda) + run `sync --fix` |
+| `/brain status` | Health check across projects |
+| `/brain new-project [name]` | Scaffold a project's canonical file set |
+| `/brain capture` | Save a session insight as a linked note |
+| `/brain recall {topic}` | Surface connected context (wiki + decisions + captures) |
+| `/brain agenda [proj] [next\|add\|done…]` | The prioritized backlog loops consume |
+| `/brain map [proj]` | Build/query the graphify knowledge graph (code + notes) — *needs graphify* |
+| `/brain sync [--fix]` | Project structure from the filesystem: index loose notes, repair links, check completeness |
+| `/brain rename {old} {new}` | Rename a project across the vault (+ reports the code-side steps) |
+| `/brain diagram`, `/brain ingest`, `/brain promote`, `/brain route`, `/brain agent-register` | see `core/subcommands/` |
 
----
+## Conventions (the canonical layout)
 
-## Configuration
-
-`config/brain-os.config.json` (not committed — copy from example):
-
-```json
-{
-  "vault_path": "/path/to/your/obsidian/vault",
-  "claude_install_path": "~/.claude",
-  "models": {
-    "default": "claude-sonnet-4-6",
-    "critique": "claude-opus-4-7",
-    "format": "claude-haiku-4-5-20251001",
-    "recall": "claude-haiku-4-5-20251001",
-    "diagram": "claude-sonnet-4-6"
-  }
-}
-```
-
-The `models` block declares which model handles each operation type. This config is read at install time today (token substitution); runtime model dispatch is wired in P2.
-
-See `config/path-tokens.md` for all supported `{{TOKEN}}` values.
-
----
-
-## Quickstart
-
-After install, open Claude Code in any directory and type:
+Each project is a folder under `Projects/{name}/` using the **prefixed folder-note** pattern, so every
+note is identifiable in the graph view:
 
 ```
-/brain status
+Projects/{name}/
+  {name}.md                # wiki root (folder note)
+  {name}-status.md         # Current (Phase/Done/Next Steps/Blocked By) + History
+  {name}-session-log.md    # append-only: ## [YYYY-MM-DD] | summary
+  {name}-decisions.md      # append-only: ## [date] Decision: X | Rationale: Y
+  {name}-agenda.md         # prioritized backlog (todo/doing/done/blocked)
+  {name}-code-map.md       # pointer to the graphify graph (if built)
+  captures/                # captured insights + captures.md hub
+  _archive/                # dated snapshots (excluded from the active graph)
 ```
 
-This reads your vault's active projects and surfaces what's in progress. Then try:
-
-```
-/brain start
-```
-
-To begin a tracked session with context loaded from vault.
-
----
-
-## Available commands
-
-| Command | What it does |
-|---------|-------------|
-| `/brain status` | Show active projects and current context from vault |
-| `/brain start` | Begin a session — loads project status into context |
-| `/brain end` | Close session — writes summary to vault log |
-| `/brain capture` | Save an insight, decision, or note to vault |
-| `/brain recall` | Search vault for relevant context |
-| `/brain diagram` | Generate a Mermaid diagram of a module |
-| `/brain new-project` | Scaffold a new project in vault |
-| `/brain agent-register` | Add an agent entry to the registry |
-| `/brain route` | Route a task to the right agent or module |
-| `/brain promote` | Move a draft or idea to active project status |
-| `/brain sync` | Sync vault index and project list |
-| `/brain history` | Show session history for a project |
-| `/social-content` | Run the social content pipeline (research → draft → critique → format) |
-
----
+`/brain sync` enforces this set and auto-indexes any loose note into `{name}.md` — orphans become
+impossible by construction.
 
 ## Modules
 
-Brain OS is organized into modules under `modules/`. Each module is a self-contained pipeline with its own agents, prompts, and registry.
+Brain OS is extensible via modules (e.g. `social-content`). A module ships its own orchestrator +
+agents and registers on install. See `docs/creating-a-module.md`.
 
-| Module | Status | Description |
-|--------|--------|-------------|
-| `social-content` | Active | 4-agent pipeline: research, draft, critique (with 5-part review), format |
+## Documentation
 
----
-
-## Vault structure expected
-
-Brain OS reads from and writes to a specific vault layout:
-
-```
-<vault>/
-  Claude/
-    workflow.md          # loaded on every session start
-    preferences.md       # loaded on every session start
-    projects-index.md    # loaded on every session start
-    agents.md            # global agent registry
-  Projects/
-    <project-name>/
-      <project-name>.md          # project wiki (main note)
-      <project-name>-status.md   # current phase, done, blockers, next
-      <project-name>-session-log.md
-```
-
-If your vault doesn't have this structure, run `/brain new-project <name>` to scaffold it.
-
----
-
-## Roadmap
-
-| Tier | Milestone | Status |
-|------|-----------|--------|
-| A | Multi-tenant vault memory, session hooks | ✅ Done |
-| B | Hierarchical `/brain` + specialist modules | ✅ Done |
-| P0 | Repo publishable: tokens, install script, tests, README | 🔨 In progress |
-| P1 | Migrate all skills to `core/` with token resolution | Planned |
-| P2 | Multi-model routing wired end-to-end | Planned |
-| C | Background workers via `async: true` hooks, event bus | Future |
-
----
+- `docs/brain-graphify-loops.md` — the Journal/Map/Hands architecture + agenda/loops design
+- `docs/architecture.md` — agent taxonomy + tiers
+- `docs/creating-a-module.md` — module spec
+- `CONTRIBUTING.md` — how to contribute
+- `RELEASE-CHECKLIST.md` — pre-public scrub + release steps
 
 ## Development
 
 ```bash
-# Run unit tests (fast, no vault needed)
-./tests/run-all.sh --unit
-
-# Check for hardcoded paths or unresolved tokens
-./tests/unit/token-scan.sh
-
-# Validate dispatch table points to real files
-./tests/unit/dispatch-table.sh
+./tests/run-all.sh          # unit + e2e (no real vault needed — uses fixtures)
+./tests/unit/token-scan.sh  # gate: no hardcoded paths / unresolved tokens
 ```
-
-CI runs on every push to `main`. The token-scan gate blocks any commit with hardcoded user paths in `core/` or `modules/`.
-
----
 
 ## License
 
