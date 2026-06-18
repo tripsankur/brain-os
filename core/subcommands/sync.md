@@ -63,6 +63,27 @@ prefixed form. `--fix` creates any missing file from the `new-project` templates
 the correct `> See also:` wikilink header) and reports renames for manual confirmation (never
 auto-overwrite existing content).
 
+**2c-ter. Auto-index loose notes (the no-orphans projector — this is the scaling safety net)**
+
+The filesystem is the source of truth; the AI may drop a freeform note straight into a project
+folder without going through `capture`/`new-project`, so it gets no `[[link]]` and floats as an
+orphan in the graph. `sync` fixes this deterministically — connectivity is *derived from the
+folder*, never from the AI remembering to link. For each project:
+- A **loose note** = a top-level `.md` in `Projects/{name}/` that is NOT in the canonical set
+  (`{name}.md`, `{name}-status/-session-log/-decisions/-agenda/-code-map.md`) and is not already
+  linked from `{name}.md`.
+- **Living doc** (no date in the filename, no `status: archived` frontmatter) → with `--fix`,
+  append `- [[note]]` under a `## Documents` section in `{name}.md` (create the section if
+  absent). Purely additive — never touch existing prose.
+- **Dated snapshot** (filename matches `\d{4}-\d{2}-\d{2}`, or `status: archived`) → do NOT
+  index (don't resurrect dead notes into the active graph). Report it as an **archive
+  candidate**; `--fix --archive` moves it to `Projects/{name}/_archive/` (which `sync` skips).
+- This is **idempotent**: once a note is listed in `## Documents`, it is "linked" and is skipped
+  on the next run. Re-running `sync --fix` on a clean vault is a no-op.
+
+This is what makes the brain scale without AI discipline: write freely, then `sync` projects the
+structure. Verified on the live vault: 12 living docs indexed, 6 snapshots flagged, re-run a no-op.
+
 **2d. Report**
 
 ```

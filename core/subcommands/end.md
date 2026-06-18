@@ -25,4 +25,9 @@ Write session back to vault. Run this at the end of every meaningful session.
    ```
    ## [YYYY-MM-DD] Decision: {X} | Rationale: {Y}
    ```
-7. Report: "Session saved to vault."
+7. Run `sync --fix {name}` (the structural safety net): projects any loose notes the session
+   wrote into `{name}.md`'s `## Documents`, repairs broken canonical links, and flags dated
+   snapshots for archive. This is what keeps the vault self-consistent without relying on each
+   write remembering to link — write freely, `end` projects the structure. (Supervised here at
+   session end on purpose — not a per-turn hook.)
+8. Report: "Session saved to vault. sync: {N} notes indexed, {M} links repaired."
