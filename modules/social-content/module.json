@@ -1,0 +1,7 @@
+{
+  "name": "social-content",
+  "version": "0.1.0",
+  "description": "Instagram content pipeline: research → draft → critique → format",
+  "vault_dir": "Projects/social-content",
+  "required_config_keys": ["vault_path", "claude_install_path"]
+}

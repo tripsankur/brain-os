@@ -1,0 +1,17 @@
+{
+  "vault_path": "/path/to/your/obsidian/vault",
+  "claude_install_path": "~/.claude",
+  "endpoint": "https://api.anthropic.com",
+  "models": {
+    "default": "claude-sonnet-4-6",
+    "research": "claude-sonnet-4-6",
+    "draft": "claude-sonnet-4-6",
+    "critique": "claude-opus-4-7",
+    "format": "claude-haiku-4-5-20251001",
+    "recall": "claude-haiku-4-5-20251001",
+    "diagram": "claude-sonnet-4-6"
+  },
+  "agent_overrides": {
+    "sc-critique-001": "claude-opus-4-7"
+  }
+}

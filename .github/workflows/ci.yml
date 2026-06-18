@@ -1,0 +1,33 @@
+name: Brain OS CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make test scripts executable
+        run: chmod +x tests/run-all.sh tests/unit/*.sh tests/e2e/*.sh 2>/dev/null || true
+
+      - name: Run unit tests
+        run: ./tests/run-all.sh --unit
+
+      - name: Check no hardcoded personal paths in core/
+        run: |
+          if grep -r "C:\\\\Users\\\\" core/ modules/ 2>/dev/null; then
+            echo "ERROR: hardcoded Windows user paths found"
+            exit 1
+          fi
+          if grep -r "/Users/[A-Za-z]" core/ modules/ 2>/dev/null; then
+            echo "ERROR: hardcoded macOS user paths found"
+            exit 1
+          fi
+          echo "Path scan: clean"

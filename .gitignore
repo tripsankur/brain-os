@@ -1,0 +1,18 @@
+# User config (contains vault path, API keys)
+brain-os.config.json
+*.config.local.json
+
+# Test artifacts
+tests/fixtures/test-vault/_brain/runtime/
+tests/out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.swp
+
+# Node (if test runner is JS)
+node_modules/
