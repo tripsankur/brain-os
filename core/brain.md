@@ -24,5 +24,6 @@ Read the subcommand file for the subcommand passed as `$ARGUMENTS` and execute i
 | `diagram` | `{{CLAUDE_PATH}}/skills/brain/subcommands/diagram.md` |
 | `map` | `{{CLAUDE_PATH}}/skills/brain/subcommands/map.md` (graphify-backed code graph) |
 | `agenda` | `{{CLAUDE_PATH}}/skills/brain/subcommands/agenda.md` |
+| `rename` | `{{CLAUDE_PATH}}/skills/brain/subcommands/rename.md` |
 
-If the subcommand is not in the table, report: "Unknown subcommand '{arg}'. Available: start, end, capture, ingest, history, status, new-project, recall, agent-register, route, promote, sync, diagram, map, agenda"
+If the subcommand is not in the table, report: "Unknown subcommand '{arg}'. Available: start, end, capture, ingest, history, status, new-project, recall, agent-register, route, promote, sync, diagram, map, agenda, rename"
