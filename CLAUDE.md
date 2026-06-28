@@ -92,3 +92,21 @@ For social-content specifically: `<vault>/Projects/social-content/` with `runs/`
 - `core/` and `modules/` must contain zero hardcoded user paths (`C:\Users\`, `/Users/`, `/home/`)
 - `_deprecated/` is excluded from token-scan
 - `core/brain.md` dispatch table must reference only files that exist in `core/subcommands/`
+
+<!-- BRAIN:POINTERS v1 — managed by /brain. Do not edit between these markers; run `/brain pointer` to refresh. -->
+## Brain OS pointers — where this project's memory lives
+
+This repo is linked to a Brain OS vault (the journal: intent, decisions, status) and optionally a
+graphify code graph (the map: structure). An agent working here loads durable context from these.
+
+- **Vault project:** `C:/Users/ankur/tripsankur-obsidian/tripsankur-vault/Projects/brain-os/`
+  - Status (current phase / next steps): `brain-os-status.md`
+  - Decisions + rationale: `brain-os-decisions.md`
+  - Session log (what happened each session): `brain-os-session-log.md`
+  - Knowledge wiki: `brain-os.md` · Agenda/backlog: `brain-os-agenda.md`
+  - Load it all at once: `/brain start`
+- **Code graph (graphify):** not built yet — run `/brain map brain-os` to generate
+- **Name mapping (join key):** repo dir `brain-os` ↔ vault folder `Projects/brain-os` (identical — the zero-config working-dir→vault auto-map).
+
+_Brain manages only the block between the BRAIN:POINTERS markers; everything else in this file is yours._
+<!-- BRAIN:POINTERS END -->

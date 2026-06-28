@@ -30,4 +30,8 @@ Write session back to vault. Run this at the end of every meaningful session.
    snapshots for archive. This is what keeps the vault self-consistent without relying on each
    write remembering to link — write freely, `end` projects the structure. (Supervised here at
    session end on purpose — not a per-turn hook.)
-8. Report: "Session saved to vault. sync: {N} notes indexed, {M} links repaired."
+8. **Refresh the repo pointer block (write-if-changed)** — run the `pointer` subcommand logic for
+   `{name}` (the working dir is the repo root). It regenerates the `BRAIN:POINTERS` block in
+   `CLAUDE.md` and writes **only if the content changed**, so a session that didn't move any
+   pointers produces a byte-identical file (zero git noise). Skip if there is no code repo.
+9. Report: "Session saved to vault. sync: {N} notes indexed, {M} links repaired. Pointer block: {unchanged|updated}."

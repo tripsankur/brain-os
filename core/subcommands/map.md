@@ -87,6 +87,10 @@ Per the template in the previous spec — header carries the cache path, commit,
 community counts; sections list God Nodes and Subsystems; "How to query" points back here. The
 graph is a regenerable cache, so this pointer is the journal's durable handle on it.
 
+Then run the `pointer` subcommand logic for `{name}` (write-if-changed) so the repo `CLAUDE.md`
+graph line flips from "not built" to the cache path + query command immediately, instead of waiting
+for the next `/brain end`. Skip on `--vault-only` / no repo.
+
 ### Step 6 — Report
 ```
 Unified map for {name}: {N} nodes · {E} edges · {C} communities  ({code} code + {notes} notes sources)

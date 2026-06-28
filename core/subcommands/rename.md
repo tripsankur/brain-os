@@ -56,9 +56,11 @@ In this order:
 7. Append to `Claude/log.md`: `## [{today}] | {new} | Renamed from {old} via /brain rename`.
 
 ### Step 4 — Code side (report; mostly manual)
-Print these steps for the user — the brain does not touch the repo automatically:
-1. Rename the repo dir: `…/tripsankur-cc/{old}/` → `…/tripsankur-cc/{new}/` so the working-dir→vault auto-map (`CLAUDE.md`: dir basename → `Projects/{basename}`) keeps resolving. If you only rename the vault, set the new dir name to match, or the auto-map points at a missing project.
-2. Update the repo's own `CLAUDE.md` if it hardcodes the old name/paths.
+Print these steps for the user. The brain manages exactly **one** delimited block in `CLAUDE.md`
+(the `BRAIN:POINTERS` block via `/brain pointer`); it never edits the rest of the repo, and it does
+NOT auto-write here because the repo dir is mid-rename and can't be located reliably:
+1. Rename the repo dir: `…/{old}/` → `…/{new}/` so the working-dir→vault auto-map (`CLAUDE.md`: dir basename → `Projects/{basename}`) keeps resolving. If you only rename the vault, set the new dir name to match, or the auto-map points at a missing project.
+2. From inside the renamed repo, run `/brain pointer {new}` — refreshes the managed `BRAIN:POINTERS` block with the new vault + graph paths. Then update any hand-written `CLAUDE.md` prose that hardcodes the old name (outside the markers — brain won't touch that).
 3. Regenerate the code-map pointer: `/brain map {new} --refresh` (the old `{old}-code-map.md` was renamed but its embedded repo path + graph location are now stale).
 4. Git: a dir rename is just `git mv` of the working tree from outside; the repo's history/remote name is unaffected unless you also rename the GitHub repo.
 
@@ -66,7 +68,7 @@ Print these steps for the user — the brain does not touch the repo automatical
 Run `/brain sync {new}` — the graph-integrity + canonical-completeness check confirms no dangling `[[{old}…]]` links remain and the new prefixed set is complete. Report:
 ```
 Renamed {old} -> {new}: {F} files, {L} wikilinks rewritten, projects-index updated.
-Manual: rename repo dir to {new} + run /brain map {new} --refresh.
+Manual: rename repo dir to {new}, then from inside it run /brain pointer {new} + /brain map {new} --refresh.
 Verify: /brain sync {new}  (expect 0 broken links).
 ```
 

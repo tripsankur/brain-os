@@ -75,6 +75,7 @@ Without it, Brain OS still works — just run `/brain start` at the top of a ses
 | `/brain map [proj]` | Build/query the graphify knowledge graph (code + notes) — *needs graphify* |
 | `/brain sync [--fix]` | Project structure from the filesystem: index loose notes, repair links, check completeness |
 | `/brain rename {old} {new}` | Rename a project across the vault (+ reports the code-side steps) |
+| `/brain pointer [proj]` | Write/refresh the managed `BRAIN:POINTERS` block in the repo's `CLAUDE.md` (vault + graph pointers, so any agent finds the project's memory). Auto-maintained by `new-project` / `end`. |
 | `/brain diagram`, `/brain ingest`, `/brain promote`, `/brain route`, `/brain agent-register` | see `core/subcommands/` |
 
 ## Conventions (the canonical layout)

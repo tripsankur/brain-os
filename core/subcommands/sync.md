@@ -84,6 +84,15 @@ folder*, never from the AI remembering to link. For each project:
 This is what makes the brain scale without AI discipline: write freely, then `sync` projects the
 structure. Verified on the live vault: 12 living docs indexed, 6 snapshots flagged, re-run a no-op.
 
+**2c-quater. Pointer-block presence (read-only — never writes)**
+
+Only when a `{project}` arg is given AND the working directory is obviously that project's repo
+root (its basename resolves to `Projects/{project}/`, or the user confirms the repo path): check
+that `{repo}/CLAUDE.md` contains a `BRAIN:POINTERS` block. If it's missing, advise
+`run /brain pointer {project}`. **sync never writes the repo** — not even with `--fix`; repo writes
+are exclusively `/brain pointer`'s job. If the repo root can't be resolved (sync is vault-wide and
+brain-os can't assume a repo location), **skip this check silently** — do not guess a path.
+
 **2d. Report**
 
 ```

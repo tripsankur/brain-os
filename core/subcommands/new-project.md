@@ -119,4 +119,9 @@ Scaffold a new project in the vault. Run this right after `/init` to link a repo
    ## [{today}] | {name} | Project scaffolded via /brain new-project
    ```
 
-Report: "Project {name} created in vault. Inbox at _raw/inbox/{name}/. Run /brain start to load context."
+10. **Write the pointer block into the repo** — run the `pointer` subcommand logic for `{name}`
+    (the working dir is the repo root here). This creates/updates the `BRAIN:POINTERS` block in
+    `CLAUDE.md` so any agent opening the repo finds the vault + code-graph pointers. Skip only if
+    there is no code repo (vault-only project).
+
+Report: "Project {name} created in vault. Inbox at _raw/inbox/{name}/. Pointer block written to CLAUDE.md. Run /brain start to load context."
