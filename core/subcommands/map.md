@@ -1,6 +1,6 @@
 ## map
 
-Build or query a project's **unified knowledge graph** with [graphify](https://graphifylabs.ai/)
+Build or query a project's **unified knowledge graph** with [graphify](https://graphify.net/)
 (`graphifyy` on PyPI) — one graph over **both the code repo and the vault notes**, so code symbols
 and the intent behind them (decisions, concepts, status) live in a single queryable structure.
 
@@ -59,6 +59,10 @@ time without moving anything.
 ### Step 2 — Ensure graphify
 Detect an interpreter that can `import graphify` (uv → pipx → active `python`); install
 `graphifyy` if absent. Save it to `{{CLAUDE_PATH}}/brain-graphs/{name}/.graphify_python`.
+> Package name: **`graphifyy`** (two y's; the *import* name is `graphify`, one y). Homepage:
+> <https://github.com/safishamsi/graphify> (site <https://graphify.net/>). Install with
+> `uv tool install graphifyy` or `pip install graphifyy`. If unsure, confirm the package on PyPI
+> (<https://pypi.org/project/graphifyy/>) before installing — the double-y name is correct, not a typo.
 > Windows: any driver `.py` must guard `if __name__ == "__main__": multiprocessing.freeze_support()`
 > (graphify extraction uses a process pool).
 

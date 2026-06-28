@@ -20,7 +20,7 @@ rebuild). **Map = redraws itself. Journal = remembers why.**
 
 ## Map: graphify replaces the heuristic `/brain map`
 
-`/brain map` is now a thin driver over [graphify](https://graphifylabs.ai/) (`graphifyy` on
+`/brain map` is now a thin driver over [graphify](https://graphify.net/) (`graphifyy` on
 PyPI). The old first-40-lines Explore heuristic is retired. graphify gives a real AST + semantic
 graph (nodes = symbols/concepts, edges = calls/imports/references), community detection,
 god-node ranking, and a persistent queryable `graph.json`.

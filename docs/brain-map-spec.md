@@ -1,7 +1,7 @@
 # `/brain map` — RETIRED (superseded by graphify)
 
 > **This heuristic design is retired.** The first-40-lines, Explore-agent code-index it described
-> has been replaced by a real knowledge graph built with [graphify](https://graphifylabs.ai/).
+> has been replaced by a real knowledge graph built with [graphify](https://graphify.net/).
 >
 > See:
 > - **`core/subcommands/map.md`** — the current `/brain map` (graphify-backed, code + vault notes in

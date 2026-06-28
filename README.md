@@ -12,7 +12,7 @@ filesystem.
 | Layer | Engine | Owns |
 |-------|--------|------|
 | **Journal** | Markdown vault (Obsidian) | intent, decisions, status, session log, preferences, agenda |
-| **Map** | [graphify](https://graphifylabs.ai/) *(optional)* | code + notes as one queryable knowledge graph |
+| **Map** | [graphify](https://graphify.net/) *(optional)* | code + notes as one queryable knowledge graph |
 | **Hands** | loops / agenda | execute tasks against a project's prioritized backlog |
 
 - **Structured recall** (a project's status / next steps / decisions) = direct file reads. Cheap, deterministic, always fresh.
