@@ -56,11 +56,12 @@ In this order:
 7. Append to `Claude/log.md`: `## [{today}] | {new} | Renamed from {old} via /brain rename`.
 
 ### Step 4 — Code side (report; mostly manual)
-Print these steps for the user. The brain manages exactly **one** delimited block in `CLAUDE.md`
-(the `BRAIN:POINTERS` block via `/brain pointer`); it never edits the rest of the repo, and it does
-NOT auto-write here because the repo dir is mid-rename and can't be located reliably:
+Print these steps for the user. The brain owns exactly one file in the repo — the gitignored
+`CLAUDE.local.md` (the `BRAIN:POINTERS` block via `/brain pointer`); it never edits committed
+source, and it does NOT auto-write here because the repo dir is mid-rename and can't be located
+reliably:
 1. Rename the repo dir: `…/{old}/` → `…/{new}/` so the working-dir→vault auto-map (`CLAUDE.md`: dir basename → `Projects/{basename}`) keeps resolving. If you only rename the vault, set the new dir name to match, or the auto-map points at a missing project.
-2. From inside the renamed repo, run `/brain pointer {new}` — refreshes the managed `BRAIN:POINTERS` block with the new vault + graph paths. Then update any hand-written `CLAUDE.md` prose that hardcodes the old name (outside the markers — brain won't touch that).
+2. From inside the renamed repo, run `/brain pointer {new}` — regenerates `CLAUDE.local.md` with the new vault + graph paths. Then update any hand-written `CLAUDE.md` prose that hardcodes the old name (brain won't touch committed source).
 3. Regenerate the code-map pointer: `/brain map {new} --refresh` (the old `{old}-code-map.md` was renamed but its embedded repo path + graph location are now stale).
 4. Git: a dir rename is just `git mv` of the working tree from outside; the repo's history/remote name is unaffected unless you also rename the GitHub repo.
 

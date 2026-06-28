@@ -2,6 +2,9 @@
 brain-os.config.json
 *.config.local.json
 
+# Per-machine Brain OS pointer (resolved absolute vault/graph paths — never commit)
+CLAUDE.local.md
+
 # Test artifacts
 tests/fixtures/test-vault/_brain/runtime/
 tests/out/

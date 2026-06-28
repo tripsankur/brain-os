@@ -88,10 +88,12 @@ structure. Verified on the live vault: 12 living docs indexed, 6 snapshots flagg
 
 Only when a `{project}` arg is given AND the working directory is obviously that project's repo
 root (its basename resolves to `Projects/{project}/`, or the user confirms the repo path): check
-that `{repo}/CLAUDE.md` contains a `BRAIN:POINTERS` block. If it's missing, advise
-`run /brain pointer {project}`. **sync never writes the repo** — not even with `--fix`; repo writes
-are exclusively `/brain pointer`'s job. If the repo root can't be resolved (sync is vault-wide and
-brain-os can't assume a repo location), **skip this check silently** — do not guess a path.
+that `{repo}/CLAUDE.local.md` contains a `BRAIN:POINTERS` block AND that `CLAUDE.local.md` is
+gitignored (`git check-ignore` echoes it). If the block is missing, or the file exists but isn't
+ignored, advise `run /brain pointer {project}` (it fixes both). **sync never writes the repo** — not
+even with `--fix`; repo writes are exclusively `/brain pointer`'s job. If the repo root can't be
+resolved (sync is vault-wide and brain-os can't assume a repo location), **skip this check
+silently** — do not guess a path.
 
 **2d. Report**
 

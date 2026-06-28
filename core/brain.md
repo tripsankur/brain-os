@@ -26,6 +26,6 @@ Read the subcommand file for the subcommand passed as `$ARGUMENTS` and execute i
 | `map` | `{{CLAUDE_PATH}}/skills/brain/subcommands/map.md` (graphify-backed code graph) |
 | `agenda` | `{{CLAUDE_PATH}}/skills/brain/subcommands/agenda.md` |
 | `rename` | `{{CLAUDE_PATH}}/skills/brain/subcommands/rename.md` |
-| `pointer` | `{{CLAUDE_PATH}}/skills/brain/subcommands/pointer.md` (writes the managed CLAUDE.md pointer block) |
+| `pointer` | `{{CLAUDE_PATH}}/skills/brain/subcommands/pointer.md` (writes the gitignored CLAUDE.local.md pointer) |
 
 If the subcommand is not in the table, report: "Unknown subcommand '{arg}'. Available: init, start, end, capture, ingest, history, status, new-project, recall, agent-register, route, promote, sync, diagram, map, agenda, rename, pointer"

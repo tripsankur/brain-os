@@ -61,6 +61,44 @@ project. This is a **manual step** (Brain OS does not edit your `settings.json` 
 
 Without it, Brain OS still works — just run `/brain start` at the top of a session to load context.
 
+## Vault & Obsidian setup
+
+Brain OS stores everything as plain Markdown under your vault dir (`vault_path` in the config), so it
+works with any editor. Obsidian is recommended only for the graph view — not required.
+
+1. *(Optional)* Install [Obsidian](https://obsidian.md).
+2. **Open folder as vault** → select your `vault_path`.
+3. The skeleton (created by the installer bootstrap, or `/brain init`):
+   ```
+   <vault>/
+     Claude/      # hub: workflow.md, preferences.md, projects-index.md, log.md, agents.md
+     Projects/    # one folder per project (see Conventions below)
+     _raw/        # inbox for unsorted captures
+   ```
+4. **Keep the graph legible** — in Obsidian, exclude the structural/noise folders from the graph
+   (Settings → Files & Links, and the graph view's filters): `agents/`, `_brain/`, `_raw/`,
+   `_archive/`. These hold machinery, not knowledge.
+5. Personalize `Claude/preferences.md` (it ships as a template).
+
+## Quickstart — link a project and use the structure
+
+From inside a code repo (or any project directory):
+
+```
+/brain new-project      # scaffold Projects/{name}/ + write a gitignored CLAUDE.local.md pointer
+/brain start            # load status + top agenda items; process inbox
+#  …do the work…
+/brain end              # write session-log + status + decisions, run sync, refresh the pointer
+```
+
+- `new-project` derives `{name}` from the repo (`package.json` / `pyproject.toml` / dir name) and
+  creates the canonical file set (see **Conventions**). It also writes **`CLAUDE.local.md`** — a
+  **gitignored, per-machine** file that Claude Code auto-loads, pointing at this project's vault +
+  graph. Resolved absolute paths live here, **never** in committed `CLAUDE.md`, so nothing machine-
+  specific is published. `/brain pointer` (re)writes it on demand; `end` keeps it fresh.
+- Day-to-day rhythm: `/brain start` to open, `/brain end` to close. Everything else
+  (`capture`, `recall`, `agenda`, `map`, `sync`) is on demand.
+
 ## Commands
 
 | Command | Does |
@@ -75,7 +113,7 @@ Without it, Brain OS still works — just run `/brain start` at the top of a ses
 | `/brain map [proj]` | Build/query the graphify knowledge graph (code + notes) — *needs graphify* |
 | `/brain sync [--fix]` | Project structure from the filesystem: index loose notes, repair links, check completeness |
 | `/brain rename {old} {new}` | Rename a project across the vault (+ reports the code-side steps) |
-| `/brain pointer [proj]` | Write/refresh the managed `BRAIN:POINTERS` block in the repo's `CLAUDE.md` (vault + graph pointers, so any agent finds the project's memory). Auto-maintained by `new-project` / `end`. |
+| `/brain pointer [proj]` | Write/refresh the repo's gitignored `CLAUDE.local.md` with vault + graph pointers (so any agent finds the project's memory) — machine-specific paths stay out of committed source. Auto-maintained by `new-project` / `end`. |
 | `/brain diagram`, `/brain ingest`, `/brain promote`, `/brain route`, `/brain agent-register` | see `core/subcommands/` |
 
 ## Conventions (the canonical layout)
