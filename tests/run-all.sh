@@ -34,6 +34,7 @@ run_test "dispatch-table integrity"       "$REPO_ROOT/tests/unit/dispatch-table.
 run_test "registry schema"                "$REPO_ROOT/tests/unit/registry-schema.sh"
 run_test "token scan (no hardcoded paths)" "$REPO_ROOT/tests/unit/token-scan.sh"
 run_test "module manifest"                "$REPO_ROOT/tests/unit/module-manifest.sh"
+run_test "brain engine (capture, redaction, views)" "$REPO_ROOT/tests/unit/brain-engine.sh"
 
 if [[ "$UNIT_ONLY" == false ]]; then
   echo ""

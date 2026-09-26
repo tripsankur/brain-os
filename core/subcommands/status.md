@@ -1,21 +1,14 @@
 ## status
 
-Show a quick health check of the memory system.
+Show the health of the memory system.
 
-1. Read `Claude/projects-index.md` — list active projects
-2. For each active project, read `Projects/{name}/{name}-status.md` — show phase and last updated
-3. Glob `_raw/inbox/**/*.md` (exclude `.keep`) — count pending items per subfolder
-4. Read last 3 lines of `Claude/log.md` — show recent activity
-5. Output a compact summary:
+1. Run the engine. It sweeps transcripts, refreshes the generated views and health, and does not touch git:
    ```
-   Projects:
-     SMC-Research — Phase 2 | last session: YYYY-MM-DD
-   
-   Inbox:
-     _raw/inbox/: N files
-     _raw/inbox/SMC-Research/: N files
-     _raw/inbox/Personal/: N files (locked)
-   
-   Recent activity:
-     [last 3 log entries]
+   python "{{CLAUDE_PATH}}/skills/brain/scripts/brain.py" sync --no-git
    ```
+2. Read `{{VAULT_PATH}}/Claude/health.md` (the AUTO block). It lists:
+   - warnings (uncurated sessions, failed scheduled tasks, stale live jobs, repos without git, unregistered folders)
+   - info lines (backup state, unmapped sessions)
+3. Read the AUTO block of `{{VAULT_PATH}}/Claude/projects-index.md` and show the Live and Active tables.
+4. Glob `_raw/inbox/**/*.md` (exclude `.keep`) and count pending items per subfolder. `Personal/` is locked unless access is granted.
+5. Output a compact summary: health verdict, the warnings, Live/Active projects with phase and last activity, inbox counts. For each warning, propose the fix; don't apply it without the user's go.

@@ -92,6 +92,13 @@ for f in "$REPO_ROOT/core/subcommands/"*.md; do
 done
 
 echo ""
+echo "Installing brain engine scripts..."
+for f in "$REPO_ROOT/core/scripts/"*.py; do
+  [[ -f "$f" ]] || continue
+  resolve_and_copy "$f" "$CLAUDE_PATH/skills/brain/scripts/$(basename "$f")"
+done
+
+echo ""
 echo "Installing modules..."
 for module_json in "$REPO_ROOT/modules/"*/module.json; do
   [[ -f "$module_json" ]] || continue
