@@ -19,3 +19,5 @@ Thumbs.db
 
 # Node (if test runner is JS)
 node_modules/
+__pycache__/
+*.pyc

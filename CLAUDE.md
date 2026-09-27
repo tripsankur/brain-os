@@ -52,6 +52,7 @@ The install script (`install.sh` / `install.ps1`) resolves tokens via `sed` subs
 ```
 core/brain.md                        → ~/.claude/commands/brain.md
 core/subcommands/*.md                → ~/.claude/skills/brain/subcommands/
+core/scripts/*.py                    → ~/.claude/skills/brain/scripts/   (brain.py engine, tokens resolved)
 modules/{name}/{name}.md             → ~/.claude/commands/{name}.md
 modules/{name}/agents/*.md           → ~/.claude/skills/{name}/agents/
 modules/{name}/agents/_deprecated/   → NOT installed (archived source only)
@@ -61,7 +62,7 @@ modules/{name}/agents/_deprecated/   → NOT installed (archived source only)
 
 - **Type 1 — Subcommand**: human-invoked (`/brain start`). Skill files live in `core/subcommands/`.
 - **Type 2 — Pipeline agent**: orchestrator-invoked inline within a module run. Skill files live in `modules/{name}/agents/`. Never spawned via `Agent()` — always executed inline.
-- **Type 3 — Background worker**: scheduled via `async: true` hooks. Not yet built (Tier C).
+- **Type 3 — Background worker**: `core/scripts/brain.py` (stdlib Python). It runs from Claude Code hooks (`session-start`, `session-end`) and from the `Brain Sync` scheduled task (`sync`). It captures every session into `Claude/_system/events.jsonl` and renders the journal, activity, index and health views. Hooks must stay under about 1s and always exit 0.
 
 ### Module structure
 

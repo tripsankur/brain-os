@@ -60,6 +60,12 @@ Get-ChildItem "$RepoRoot\core\subcommands\*.md" | ForEach-Object {
 }
 
 Write-Host ""
+Write-Host "Installing brain engine scripts..."
+Get-ChildItem "$RepoRoot\core\scripts\*.py" | ForEach-Object {
+    Resolve-AndCopy $_.FullName "$ClaudePath\skills\brain\scripts\$($_.Name)"
+}
+
+Write-Host ""
 Write-Host "Installing modules..."
 Get-ChildItem "$RepoRoot\modules\*\module.json" | ForEach-Object {
     $moduleJson = $_
